@@ -1,2 +1,2 @@
 # cdm-ephemera
-CDM bits and pieces that might be of some value
+Some CDM bits and pieces that might be of value
