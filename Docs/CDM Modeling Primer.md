@@ -12,23 +12,23 @@ In CDM, logical and physical data is described in terms of entities and their at
 
 CDM is based on a type system much like other languages.  Key concepts are sketched and then described below.
 
-![](media/CDM%20Conceptual%20Model.png)
+![](media/CDMConceptualModel.png)
 
 - **CDM SDK and object model**
   - The CDM SDK provides an object model used to parse, create, process, and validate CDM, including, for example, operations to resolve a logical entity into a physical entity and save it to a CDM folder.
   - The object model also provides tools to map CDM to and from other formats such as the earlier model.json.
-  - Given the complexity of CDM, it is strongly recommended to use the the CDM object model in all tools that work directly with CDM.  The code for the CDM object mode can be downloaded in several languages from the [CDM GitHub](https://github.com/Microsoft/CDM) 
+  - Given the complexity of CDM, it is strongly recommended to use the the CDM object model in all tools that work directly with CDM.  The code for the CDM object model can be downloaded in several languages from the [CDM GitHub](https://github.com/Microsoft/CDM). 
 
 - **CDM objects (types)**
-  - Are manifests, entities, datatypes, traits, and attribute groups.
+  - Are manifests, entities, datatypes, traits, and attribute groups, all described below.
   - Are defined by referencing other CDM objects and definitions.
 
 - **CDM definition files**
   - Contain CDM object definitions
   - Are JSON files named \*.cdm.json
   - Manifests are defined one-per file named \*.manifest.cdm.json
+  - It's best practice to define entities, one per file, named \<entity\>.cdm.json, although this is not required. Using individual files allows definitions to be worked on, referenced and versioned individually.
   - Other CDM objects are commonly grouped into definition files based on their kind and/or intended use.
-  - It's a best practice to define entities, one per file, named \&lt;entity\&gt;.cdm.json although this is not a requirement. Using individual files allows definitions to worked on, referenced and versioned individually if required.
   - References to object definitions within files are written as \<pathexpression\>/\<filename\>/\<objectName>, with the path expression typically relative to the model root or corpus location. For example, projects/task.cdm.json/task
   - A CDM definition file can import other CDM definition files to bring CDM objects, defined in that file or imported into that file, into scope so they can be referenced as if defined locally. Most CDM definition files directly or indirectly import the foundations.cdm.json file, which imports primitive CDM datatypes and standard traits.
   - The collection of files required to resolve a definition (typically a manifest) is referred to as the _corpus_.
@@ -45,7 +45,7 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
     - "local" binds to a local file system adapter; the root location can be any valid file system location
   - If importing files results in multiple objects of the same name, a **Moniker** can be defined on the alias. Prefixing an object name with the moniker in references allows discrimination between same-named objects.<br/><br/>**Caution:** Not all CDM-aware tools support the use of aliases. If not, you may need to make a local copy of referenced definition files and modify import statements.
 
-  Snippet below shows a CDM definition file that imports the CDM Foundations definition using the cdm alias, and a local BaseEntity definition file 
+  Snippet below shows a CDM definition file that imports the CDM Foundations definition using the cdm alias, and a local Person definition file 
   
 ```
   {
@@ -56,7 +56,7 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
             "corpusPath": "cdm:/foundations.cdm.json"
         },
         {
-            "corpusPath": "BaseEntity.cdm.json"
+            "corpusPath": "Person.cdm.json"
         }
     ],
     "definitions": [
@@ -70,11 +70,13 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
 - **CDM folder**
   - Primarily refers to a folder that directly contains a manifest that references, either directly or via sub-manifests, **physical entity definitions with data**. Most commonly, the referenced data is contained in files within the same folder or sub-folders.
   - A folder containing a manifest that references logical entity definitions but does not reference data tends not to be referred to as a CDM folder.
-  - A CDM folder **can contain multiple manifest files** that might reference disjoint or overlapping sets of data, providing perhaps different perspectives of the same data.
-  - While much is made of CDM folders as the container of CDM data, it is the manifest within the folder that is the root object for accessing data and metadata. When processing the manifest, objects and data in the folder not referenced by the manifest are 'invisible'. For this reason, it is important when adopting CDM to **ensure that all consumers refer to the manifest and do not process the files in the CDM folder directly**.
+  - A CDM folder **can contain multiple manifest files** that might reference disjoint or overlapping sets of data.
+  - While much is made of CDM folders as the container of CDM data, it is the manifest within the folder that is the root object for accessing data and metadata. When processing the manifest, objects and data in the folder that are not referenced by the manifest are 'invisible'. For this reason, it is important when adopting CDM to **ensure that all consumers refer to the manifest and do not process the files in the CDM folder directly**.
+  - **One producer, many consumers**. For file-based CDM folders in ADLS, as the data files and CDM metadata must be explicitly managed by the producer - ADLS folders are not a DBMS with transaction support,  - it is a best practice to have only a single producing process for a CDM folder. This minimize the possibilty of contention on the metadata files.  This can be mitigated through the use of sub-manifests, discussed below.     
 
 - **CDM manifest**
-  - Defines a group of entities _by reference._ In CDM, a manifest defines the scope of a CDM &#39;model&#39;.  While widely used in discussion, the term 'model' is not a formal CDM concept.
+  - Defines a group of entities _by reference._ 
+  - In CDM, a manifest defines the scope of a CDM 'model'.  While widely used in discussion, the term 'model' is not a formal CDM concept.
   - Defines (typically) either a group of logical entity definitions – a logical model, or a group of physical entity definitions plus data.
   - Contains one or more entity declarations that each references an entity definition in a CDM definition file. CDM definition files are typically located within the parent folder of the manifest or within sub-folders or at some other location referenced via an alias.
   - If a manifest describes a CDM folder containing data, each entity declaration will also contain partitions or partition patterns that define where the data is located and how it is formatted, e.g. CSV or Parquet.
@@ -82,7 +84,9 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
     - A sub-manifest is a reference to a separate manifest (file) that includes the content of that manifest as part of the parent manifest.
     - Manifests that are included as sub-manifests can include other sub-manifests.
     - Sub-manifests provide a way to separate entities or groups of entities and allow these groups to be reused if desired.
-    - Using sub-manifests can reduce the risk of contention on the root manifest file if large numbers of entities are included and may be updated in parallel, requiring the manifest to be updated. A common pattern is to use a sub-manifest per entity in a CDM folder.
+    - Using sub-manifests can reduce the risk of contention on the root manifest file if large numbers of entities are included and may be updated in parallel, requiring the manifest to be updated. 
+    - A common pattern is to use a sub-manifest per entity in a CDM folder.  This is the default pattern used by mapping dataflows in ADF and Synapse, for example.
+    - With care, sub-manifests could be used by different producers contributing distinct sets of entities into a larger CDM folder.
   - When a manifest is loaded and resolved by the CDM object model, it also loads the set of CDM definition files containing all directly and indirectly referenced objects. The body of related CDM definition files is referred to as a corpus. The corpus root is defined typically by a manifest location, and all other files and objects can be referenced relative to that corpus root or by referencing an alias and a relative path expression.
   - If a CDM folder references shared definitions these can be in higher level folders, in which case, the corpus root must be set to the highest folder containing referenced definitions.
 
