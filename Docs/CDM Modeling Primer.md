@@ -14,20 +14,20 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
 
 ![CDM Conceptual Model](https://github.com/billgib/cdm-ephemera/blob/master/Docs/Media/CDMConceptualModel.png)
 
-- **CDM SDK and object model**
+### CDM SDK and object model
   - The CDM SDK provides an object model used to parse, create, process, and validate CDM, including, for example, operations to resolve a logical entity into a physical entity and save it to a CDM folder.
   - The object model also provides tools to map CDM to and from other formats such as the earlier model.json.
   - Given the complexity of CDM, it is strongly recommended to use the the CDM object model in all tools that work directly with CDM.  The code for the CDM object model can be downloaded in several languages from the [CDM GitHub](https://github.com/Microsoft/CDM). 
 
-- **CDM objects (types)**
+### CDM objects (types)
   - Are manifests, entities, datatypes, traits, and attribute groups, all described below.
   - Are defined by referencing other CDM objects and definitions.
 
-- **CDM definition files**
+### CDM definition files
   - Contain CDM object definitions
   - Are JSON files named \*.cdm.json
   - Manifests are defined one-per file named \*.manifest.cdm.json
-  - It's best practice to define entities, one per file, named \<entity\>.cdm.json, although this is not required. Using individual files allows definitions to be worked on, referenced and versioned individually.
+  - It's best practice to define entities one per file named \<entity\>.cdm.json. Using individual files allows definitions to be worked on, referenced and versioned individually.
   - Other CDM objects are commonly grouped into definition files based on their kind and/or intended use.
   - References to object definitions within files are written as \<pathexpression\>/\<filename\>/\<objectName>, with the path expression typically relative to the model root or corpus location. For example, projects/task.cdm.json/task
   - A CDM definition file can import other CDM definition files to bring CDM objects, defined in that file or imported into that file, into scope so they can be referenced as if defined locally. Most CDM definition files directly or indirectly import the foundations.cdm.json file, which imports primitive CDM datatypes and standard traits.
@@ -70,16 +70,16 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
 ```  
 
 
-- **CDM folder**
+### CDM folder
   - Primarily refers to a folder that directly contains a manifest that references, either directly or via sub-manifests, **physical entity definitions with data**. Most commonly, the referenced data is contained in files within the same folder or sub-folders.
   - A folder containing a manifest that references logical entity definitions but does not reference data tends not to be referred to as a CDM folder.
   - A CDM folder **can contain multiple manifest files** that might reference disjoint or overlapping sets of data.
   - While much is made of CDM folders as the container of CDM data, it is the manifest within the folder that is the root object for accessing data and metadata. When processing the manifest, objects and data in the folder that are not referenced by the manifest are 'invisible'. For this reason, it is important when adopting CDM to **ensure that all consumers refer to the manifest and do not process the files in the CDM folder directly**.
   - **One producer, many consumers**. For file-based CDM folders in ADLS, as the data files and CDM metadata must be explicitly managed by the producer - ADLS folders are not a DBMS with transaction support,  - it is a best practice to have only a single producing process for a CDM folder. This minimize the possibilty of contention on the metadata files.  This can be mitigated through the use of sub-manifests, discussed below.     
 
-- **CDM manifest**
+### Manifest
   - Defines a group of entities _by reference._ 
-  - In CDM, a manifest defines the scope of a CDM 'model'.  While widely used in discussion, the term 'model' is not a formal CDM concept.
+  - Defines the scope of a CDM 'model'.  While widely used in discussion, the term 'model' is not a formal CDM concept.
   - Defines (typically) either a group of logical entity definitions – a logical model, or a group of physical entity definitions plus data.
   - Contains one or more entity declarations that each references an entity definition in a CDM definition file. CDM definition files are typically located within the parent folder of the manifest or within sub-folders or at some other location referenced via an alias.
   - If a manifest describes a CDM folder containing data, each entity declaration will also contain partitions or partition patterns that define where the data is located and how it is formatted, e.g. CSV or Parquet.
@@ -116,7 +116,7 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
 }
 ```
 
-- **Partitions and partition patterns**
+### Partitions and partition patterns
   - An entity declaration can contain a list of partitions and/or partition patterns that identify dataset(s) that are defined by the referenced physical entity definition.
   - A _partition_ identifies a specific dataset – typically a file – that contains all or part of the entity's data.
   - A _partition pattern_ identifies datasets implicitly by defining a path and/or name pattern and a format that applies to all partitions that conform to the pattern. The pattern can be defined using either a regex or glob wildcard expression. A glob wildcard pattern tends to be more easily understood, although is less expressive than regex.
@@ -127,14 +127,15 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
   
   CDM partitions and partition patterns might in future reference other data stores and formats, such as a table in SQL or a folder in Delta Lake.
 
-- **Entity versioning**
+### Entity versioning
   - By default, datasets referenced by partitions or partition patterns included in an entity declaration are defined by the referenced entity definition.
   - If the schema of an entity changes over time, older partitions can reference an earlier version of the physical entity definition. If care is taken to ensure that schema changes are additive and new attributes are introduced are nullable or have a default value, this mechanism allows clients to be able to read new and old data.
   - A version number trait can be associated with an entity and a numbering scheme used to indicate whether an entity version is compatible with earlier versions. Such usage and schemes are not enforced by the CDM object model. The onus is on the producer to correctly mark versions and on the client to recognize the presence of different versions and to process the metadata and react accordingly.
 
-  *Versioning is an advanced CDM scenario that may not be supported by all CDM-aware tools. Verify before using.*
+  *Versioning is an advanced CDM scenario that is not currently supported by most CDM-aware tools. Verify before using.*
 
-- **Entity definitions** are of two kinds: logical and physical.
+### Entities
+  - Entity definitions are of two kinds: logical and physical.
   - A **logical entity definition** :
     - Defines entity shape and semantics only.
     - Is unresolved; all references to other CDM objects are explicit.
@@ -206,38 +207,43 @@ The snippet below shows the definition for two entites, Entity and Person.  Enti
       - Applies all resolution guidance directives, for example, including foreign key attributes and other selected attributes from related entity types in-line if required.
     - Is largely a self-contained entity definition that can be processed without further resolution.
 
-The resolution process currently adds a single import statement to a physical entity definition to import the file containing the logical entity definition from which it was resolved. This does mean that the **logical entity definition must be available at 'run time'**. This requirement is being reviewed.
+While all the import statements from the logical entity are removed by the resolution process, a single import statement is added to the physical entity definition that imports the file containing the original logical entity definition . This requires that the **logical entity definition is available at 'run time'**. 
 
-- **Attributes**
-  - An attribute defines a slot on an entity that holds data about an instance of the entity. Examples  include, firstName, lastName, and birthdate on the Person entity snippet above.
+### Attributes
+  - An attribute defines a slot on an entity that holds data about an instance of the entity. Examples are, firstName, lastName, and birthdate on the Person entity snippet above.
   - Attribute properties include name, description, display name
   - Attributes can be of a **datatype** , which might be a CDM primitive type like string or a custom datatype, like emailAddress, which might be defined as a string with additional formatting constraints defined. Properties include, nullable, maximum length, minimum and maximum value, purpose (such as identifier).
   - Attributes can be of an **entity type** , for example, Business.owner is of type Person. This defines a logical relationship between the Business and Person entities. Properties include min and maximum cardinality of the related entity.
   - Resolution guidance can be provided on entity attributes on logical entities that indicate how the relationship should be manifested in the resolved physical entity.
 
-- **Relationships**
-  - Relationships in a purely logical model are defined by an entity attribute.
-  - CDM currently doesn't require you create entity attributes at both ends of a relationship, and if you do, it doesn't yet support the notion of binding a pair of entity attributes as the inverse of each other.
-  - Related entity types can be implemented in different ways. Resolution guidance on the entity can be used to indicate whether you want to use a relational implementation with a foreign key, or to embed a denormalized copy of a related entity, or support the notion of a structured or nested hierarchy of objects, which suits JSON or nested Parquet formats.
+### Relationships
+
+  - Relationships between logical entities are defined by an entity attribute.
+  - CDM currently doesn't require you create entity attributes at both ends of a relationship, and if you do, it doesn't support the notion of binding a pair of entity attributes as the inverse of each other.
+  - Related entity types can be *implemented* in different ways. 
+    - relational implementation with a foreign key, or to 
+    - embed a denormalized copy of a related entity, or 
+    - structured or nested hierarchy of objects, which suits JSON or nested Parquet formats.
+  - The implementation chosen is determined either by guidance parameters passed into the resolution action in the OM or by resolution guidance included in the entity definition. 
   - If you choose to use a relational approach, you can then separately represent the connected notion of a relationship (with _from_ and _to_ entities) as a relationship object in the manifest.  It is possible to generate the relationships in the manifest from the entities and their resolution guidance.
 
-- **Traits**
+### Traits
   - While entities and attributes describe the shape of data, traits provide an extensible way to classify CDM definitions with semantics or meaning. Traits are metadata that can be applied to a CDM object and which define characteristics that apply to all instances of that object.
   - Traits are named using a hierarchical namespace-like convention, e.g. is.dataFormat.Integer, is.partition.format.parquet, means.location.address.city, means.measurement.duration.minutes, means.identity.person.lastName, etc.
   - Traits may be simple tags or take parameters, such as precision and scale values on the trait is.dataformat.decimal.
   - There is base set of traits that ships with CDM and further traits can be defined to define an ontology for any domain of interest.
 
-- **DataTypes**
+### DataTypes
   - Datatypes define the logical type of a single datum.
   - CDM defines a set of standard datatypes, such as string, date, time, etc. which can be extended by custom datatypes.
   - Extending the primitive datatypes provides a way to define reusable semantic type definitions for attributes, like emailAddress. Datatypes can be tagged with traits to convey their meaning and to express constraints, such as maximum and minimum values or sizes, precision and range, default values.
   - When resolving an entity, logical Datatypes on the attributes are resolved to physical DataFormats with a set of data format traits that describe the semantics at the datatype level.
 
-- **Attribute groups**
+### Attribute groups
   - Attribute groups provide a way to group together attributes that are commonly used together but are not considered a datatype or entity.
   - AttributeGroups can be included in an entity definition like individual attributes.
 
-- **Entity resolution guidance and resolution**
+### Entity resolution guidance and resolution
   - A logical entity can include resolution guidance instructions that influence how it is resolved. Depending on the options chosen, mappings to different physical shapes are possible, particularly influencing how entity attributes are resolved, whether to a relational style (with FKs), denormalized/embedded with attributes from the realted entity inline, or nested/hierarchical suitable for formats like nested Parquet.
   - Using extension, it's possible to create alternate physical entities from the same base logical entity.
   - Resolution is normally performed by the CDM object model. Resolution creates a physical entity (see above). Resolved entity types could be authored by hand but it's not recommended.  
