@@ -6,7 +6,7 @@ Bill Gibson, 5/24/2020 <br/>
 
 The Common Data Model (CDM) language provides a way to model data, both the shape or structure of data (schema) and its meaning or purpose (semantics). CDM can define logical models, which express abstract data shapes and semantics, and physical models, which describe how data is structured, formatted, and organized in storage or in some view of the data.
 
-For the official Microsoft CDM docs, see https://docs.microsoft.com/en-us/common-data-model/.  For an unofficial fire-hose look at CDM, read on. 
+For the official Microsoft CDM docs, see https://docs.microsoft.com/en-us/common-data-model/.  For an unofficial fire-hose look at CDM, read on. Caveat Emptor.
 
 In CDM, logical and physical data is described in terms of entities and their attributes and relationships to other entities. A logical entity definition, in addition to defining a purely logical perspective of an entity, can also describe how it should be mapped or resolved to a physical entity. The mapping, referred to as resolution guidance, can apply a relational implementation style with foreign key-based relationships between entities, a denormalized flattened implementation, with related entities embedded in line, or a structured implementation, with related data contained in a nested structure.
 
@@ -225,7 +225,7 @@ While all the import statements from the logical entity are removed by the resol
     - embed a denormalized copy of a related entity, or 
     - structured or nested hierarchy of objects, which suits JSON or nested Parquet formats.
   - The implementation chosen is determined either by guidance parameters passed into the resolution action in the OM or by resolution guidance included in the entity definition. 
-  - If you choose to use a relational approach, you can then separately represent the connected notion of a relationship (with _from_ and _to_ entities) as a relationship object in the manifest.  It is possible to generate the relationships in the manifest from the entities and their resolution guidance.
+  - If you choose to use a relational approach, the connected notion of a relationship (with _from_ and _to_ entities) is represented as a relationship object in the manifest.  It is possible to generate the relationships in the manifest from the entity attributes on the logical entities and their resolution guidance.
 
 ### Traits
   - While entities and attributes describe the shape of data, traits provide an extensible way to classify CDM definitions with semantics or meaning. Traits are metadata that can be applied to a CDM object and which define characteristics that apply to all instances of that object.
