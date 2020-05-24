@@ -1,5 +1,5 @@
 # CDM Modeling Primer
-## An unofficial guide to CDM
+<h2>An unofficial guide to CDM </h2>
 
 Bill Gibson, 5/24/2020 <br/>
 
