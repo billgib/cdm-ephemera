@@ -1,8 +1,7 @@
 # CDM Modeling Primer
+## An unofficial guide to CDM
 
-An unofficial guide to CDM
-
-Bill Gibson, 5/18/2020 <br/>
+Bill Gibson, 5/24/2020 <br/>
 
 The Common Data Model (CDM) language provides a way to model data, both the shape or structure of data (schema) and its meaning or purpose (semantics). CDM can define logical models, which express abstract data shapes and semantics, and physical models, which describe how data is structured, formatted, and organized in storage or in some view of the data.
 
