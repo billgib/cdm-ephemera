@@ -38,14 +38,14 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
     - Is prefixed by an alias and "/", indicating a relative path from the location defined by the alias. For example, the expression, sales:/customer.cdm.json refers to a definition file at the root location specified by the *sales* alias.
   - **Aliases** provide a mechanism to allow the location of imported files to be provided via configuration.  This allows definition files to be persisted at different locations and in different kinds of storage (e.g. GitHub or ADLS, local filesystem, etc.) and allows the user of a model, by changing the configuration of the alias in the config.json file to change the binding. This mechanism can be used, for example, to ensure that referenced content is in an accessible location when CDM folders are deployed.
   - Aliases are defined in a config.json file located with a manifest. Thus different manifests can use different locations for referenced content.
-  - While alias values are arbitrary strings, the alias &quot;cdm&quot;, is widely used to refer to the location of the base CDM files, including the CDM foundations and primitives, and the CDM schema These base CDM definitions are mastered in the CDM GitHub repo here [https://github.com/microsoft/CDM/tree/master/schemaDocuments](https://github.com/microsoft/CDM/tree/master/schemaDocuments) and may be referenced from thee directly or may be copied to some other location, such as an ADLS folder or a local file system folder and referenced there.
+  - While alias values are arbitrary strings, the alias "cdm", is widely used to refer to the location of the base CDM files, including the CDM foundations and primitives, and the CDM schema These base CDM definitions are mastered in the CDM GitHub repo here [https://github.com/microsoft/CDM/tree/master/schemaDocuments](https://github.com/microsoft/CDM/tree/master/schemaDocuments) and may be referenced from thee directly or may be copied to some other location, such as an ADLS folder or a local file system folder and referenced there.
   - In an alias entry in the config.json file, the *alias type* binds to a storage adapter, values include:
     - "adls" for an ADLS gen2 adapter; the root location can be defined to any ADLS location using a URL specifying the endpoint for the account, container and optionally a folder path
     - "github" for the GitHub adapter, which currently only allows binding to the CDM GitHub repo at the [https://github.com/microsoft/CDM/tree/master/schemaDocuments](https://github.com/microsoft/CDM/tree/master/schemaDocuments) location
     - "local" binds to a local file system adapter; the root location can be any valid file system location
   - If importing files results in multiple objects of the same name, a **Moniker** can be defined on the alias. Prefixing an object name with the moniker in references allows discrimination between same-named objects.<br/><br/>**Caution:** Not all CDM-aware tools support the use of aliases. If not, you may need to make a local copy of referenced definition files and modify import statements.
 
-  Snippet below shows a CDM definition file that imports the CDM Foundations definition using the cdm alias, and a local Person definition file 
+  The snippet below shows a CDM definition file that imports foundations using the cdm alias, BaseEntity from the model root, and Person from the current folder.  
   
 ```
   {
@@ -55,6 +55,9 @@ CDM is based on a type system much like other languages.  Key concepts are sketc
         {
             "corpusPath": "cdm:/foundations.cdm.json"
         },
+        {
+            "corpusPath": "/BaseEntity.cdm.json"
+        }
         {
             "corpusPath": "Person.cdm.json"
         }
