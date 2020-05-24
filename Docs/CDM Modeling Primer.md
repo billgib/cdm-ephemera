@@ -12,7 +12,7 @@ In CDM, logical and physical data is described in terms of entities and their at
 
 CDM is based on a type system much like other languages.  Key concepts are sketched and then described below.
 
-![](media/CDMConceptualModel.png)
+![CDM Conceptual Model](https://github.com/billgib/cdm-ephemera/blob/master/Docs/Media/CDMConceptualModel.png)
 
 - **CDM SDK and object model**
   - The CDM SDK provides an object model used to parse, create, process, and validate CDM, including, for example, operations to resolve a logical entity into a physical entity and save it to a CDM folder.
