@@ -4,11 +4,42 @@ CDM Modeling Primer
 
 Bill Gibson, 5/24/2020 <br/>
 
-The Common Data Model (CDM) language provides a way to model data, both the shape or structure of data (schema) and its meaning or purpose (semantics). CDM can define logical models, which express abstract data shapes and semantics, and physical models, which describe how data is structured, formatted, and organized in storage or in some view of the data.
-
 For the official Microsoft CDM docs, see https://docs.microsoft.com/en-us/common-data-model/.  For an unofficial fire-hose look at CDM, read on. Caveat Emptor.
 
-In CDM, logical and physical data is described in terms of entities and their attributes and relationships to other entities. A logical entity definition, in addition to defining a purely logical perspective of an entity, can also describe how it should be mapped or resolved to a physical entity. The mapping, referred to as resolution guidance, can apply a relational implementation style with foreign key-based relationships between entities, a denormalized flattened implementation, with related entities embedded in line, or a structured implementation, with related data contained in a nested structure.
+The Common Data Model (CDM) language provides a way to model data, both the shape or structure of data (schema) and its meaning or purpose (semantics). CDM can define logical models, which express abstract data shapes and semantics, and physical models, which describe how data is structured, formatted, and organized in storage or in some view of the data.
+
+In CDM, logical and physical data is described in terms of entities and their attributes and relationships to other entities. A logical entity definition, in addition to defining a purely logical perspective of an entity, can also describe how it should be mapped or resolved to a physical entity. The mapping, referred to as resolution guidance, can apply a relational implementation pattern with foreign key-based relationships between entities, a denormalized flattened implementation, with related entities embedded in line, or a structured implementation, with related data contained in a nested structure.
+
+# Data models in CDM
+Data models in CDM are defined by a manifest that references entity definitions.  These entity definitions reference other CDM entity and object definitions (at a minimum the core datatypes defined in foundations.cdm.json).  The manifest, entities and other objects are defined in CDM files.
+
+CDM can be used to define logical and physical models. A logical model describes a logical view of data, describing logical data shape and semantics, while a physical model describes how data is stored or viewed, including ordering and renaming attributes, how data is structured, and how records are formatted.  A physical model is normally derived from a logical model through a process known as resolution.  
+
+The metadata in a CDM folder is a physical model that additionally describes the location of the data for each entity. 
+
+## Logical data models
+Logical data models describe an implementation-independent model of data for some domain.  Logical data models comprise logical entities that describe the things of interest in the domain about which data is gathered, and data structures that are used in the composition of those entities.  Entities can be created to describe abstract concepts in the domain, which can then be extended to describe more concrete concepts.  The semantic meaning of each entity can be described by adding traits to the entity.  Traits can be used to define a domain-specific ontology that can capture the terminology, including synonyms, used within an organization.
+
+The data gathered for each entity are described using attributes.  Attributes are defined using primitive datatypes, such as _string_ or _integer_, or semantic datatypes, such as _emailAlias_ or _createdDate_, which extend primitive datatypes with semantic meaning or purpose using traits.  CDM provides a basic set of semantic datatypes, which can be added to or extended to create a library of useful domain-specific datatypes. Attribute semantics can be annotated using traits. 
+
+Relationships between logical entities are captured using entity attributes – attributes of entity type.  CDM provides a mechanism for annotating a logical entity with resolution guidance to indicate how it and any related entities should be implemented in a physical model.  options include using a relational foreign key model, embedding attributes of a related entity inline, or by nesting one entity in another in a hierarchical fashion.  
+
+## Physical data models
+Physical data models describe specific data layouts used for storage.  A physical data model is created by resolving the definition of one or more logical entities.  For example, in a logical model, the logical entity Person may extend the entity Party.  If Person entity is resolved, the extension is collapsed and the resulting physical entity _Person directly contains the attributes of Party and Person with their traits. Each attribute is resolved with the datatype resolved to a data format plus traits.
+
+Resolving a logical entity also resolves any relationships defined in the logical entity as entity attributes.  Logical relationships are resolved to a specific physical implementation – either foreign key based relational implementation, or through embedding/denormalization of attributes of the related entity, or as nested structures derived from the related entity.  Nested structures are suitable for document-based implementations, for example in nested Parquet. During resolution, attribute datatypes are resolved to their underlying data format, with all the inherited data type traits.
+
+The process of resolving logical entities to physical entities can be directed using resolution guidance. Including the resolution guidance in a logical entity definition means it is clearly articulated, can be versioned, compared, etc.  Adding the guidance to a logical entity definition effectively locks in a specific physical implementation for that entity, so it may be preferable to create a new derived logical entity definition for the purpose of adding the resolution guidance – this new logical definition can be thought of as a ‘proto-physical’ entity.
+
+Resolution guidance allows attributes of the entity to be selectively included/excluded, renamed, and reordered in the physical entity.  It allows implementation of relationships to be specified, including the selection of attributes of the related entity to be included as a foreign key, selection of attributes of the related entity to be incorporated as denormalized/embedded attributes, and or to be included as part of nested structure(s).
+
+This ability to selectively include attributes makes the process of resolution a form of projection or view definition.
+
+## Deploying a physical model to a CDM folder
+A physical model or some subset of it can be deployed as a CDM folder.  A CDM folder, represents an instance of physical entities that can have data associated.  A CDM folder can be thought of as a ‘CDM database’, albeit without many of the features of a proper database. Deploying a physical model creates the folder at the target location and defines any appropriate folder structure and partition patterns that will be used to reference data files.
+
+
+# CDM Concepts
 
 CDM is based on a type system much like other languages.  Key concepts are sketched and then described below.
 
